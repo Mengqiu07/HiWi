@@ -29,10 +29,11 @@ import uuid
 import winreg
 from ctypes import wintypes
 
-APP_NAME = "TrayHider"
-WINDOW_TITLE = "TrayHider 托盘图标管理器"
-MUTEX_NAME = "Global\\TrayHider_Mutex_7F3A9C21"
-IPC_HOST, IPC_PORT = "127.0.0.1", 47313
+APP_NAME = "HIWi"
+LEGACY_APP_NAME = "TrayHider"   # 旧版名称, 用于一次性迁移
+WINDOW_TITLE = "HIWi 托盘图标管理器"
+MUTEX_NAME = "Global\\HIWi_Mutex_7F3A9C21"
+IPC_HOST, IPC_PORT = "127.0.0.1", 47314
 POLL_INTERVAL = 2.0
 FULL_SCAN_INTERVAL = 15.0
 UID_SCAN_RANGE = range(6)
@@ -50,6 +51,29 @@ def _data_dir():
 
 CONFIG_PATH = os.path.join(_data_dir(), "config.json")
 LOG_PATH = os.path.join(_data_dir(), "error.log")
+
+def migrate_legacy():
+    """从旧版(TrayHider)迁移隐藏名单配置, 并清除旧的开机自启项。"""
+    try:
+        old_dir = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), LEGACY_APP_NAME)
+        old_cfg = os.path.join(old_dir, "config.json")
+        if not os.path.exists(CONFIG_PATH) and os.path.exists(old_cfg):
+            try:
+                with open(old_cfg, "r", encoding="utf-8") as f:
+                    d = json.load(f)
+                with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+                    json.dump(d, f, ensure_ascii=False, indent=2)
+            except Exception:
+                pass
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r"Software\Microsoft\Windows\CurrentVersion\Run",
+                                0, winreg.KEY_SET_VALUE) as k:
+                winreg.DeleteValue(k, LEGACY_APP_NAME)
+        except OSError:
+            pass
+    except Exception:
+        pass
 
 def log_error(msg):
     try:
@@ -725,7 +749,7 @@ class App:
                         command=self.toggle_autostart).pack(side="right")
 
         ttk.Label(root, padding=(8, 0, 8, 8), foreground="#666666",
-                  text="关闭本窗口不会退出程序，任务栏和托盘中都不会显示；再次双击 TrayHider.exe 即可重新打开。"
+                  text="关闭本窗口不会退出程序，任务栏和托盘中都不会显示；再次双击 HIWi.exe 即可重新打开。"
                   ).pack(fill="x")
 
         root.protocol("WM_DELETE_WINDOW", root.withdraw)
@@ -849,11 +873,14 @@ def main():
         notify_running_instance()   # 已运行：仅显示已有窗口后退出
         return
 
+    migrate_legacy()
+
     cfg = Config()
     if cfg.first_run:
-        set_autostart(True)         # 首次运行默认开启开机自启
-        cfg.autostart = True
+        cfg.autostart = True        # 首次运行默认开启开机自启
         cfg.save()
+    if cfg.autostart and not get_autostart():
+        set_autostart(True)         # 确保自启项存在 (如从旧版迁移后被清除)
 
     engine = Engine(cfg)
     threading.Thread(target=engine.loop, daemon=True).start()

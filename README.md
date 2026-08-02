@@ -1,4 +1,4 @@
-# TrayHider 托盘图标管理器
+# HIWi 托盘图标管理器
 
 一个用于**隐藏 / 恢复 Windows 系统托盘图标**的小工具。它只隐藏图标，**不会关闭图标对应的程序**，程序在后台照常运行。
 
@@ -7,20 +7,20 @@
 - **托盘程序列表**：主窗口实时列出当前系统托盘里的小程序（程序名、提示文本、状态）
 - **隐藏 / 恢复**：选中程序后点击「隐藏选中」即可让其托盘图标消失；「恢复显示」会让图标重新出现
 - **关闭不退出**：关闭主窗口不会退出本程序，且本程序在任务栏和托盘中都不显示
-- **单实例唤醒**：再次双击 `TrayHider.exe`，已运行的实例会重新弹出主窗口（不会重复启动）
+- **单实例唤醒**：再次双击 `HIWi.exe`，已运行的实例会重新弹出主窗口（不会重复启动）
 - **开机自启**：首次运行自动写入注册表 Run 键（带 `--quiet` 参数），开机静默启动、不弹窗口；主界面可勾选开关
 - **状态持久化**：隐藏名单保存在配置文件中，关机重启后继续生效；目标程序之后启动时会被自动检测并隐藏
 - **静默运行**：任何异常都不会弹出窗口，仅写入日志文件
 
 ## 使用方法
 
-1. 双击 `dist\TrayHider.exe` 打开主窗口
+1. 双击 `dist\HIWi.exe` 打开主窗口
 2. 在列表中选中一个或多个程序，点击：
    - **隐藏选中** —— 立即隐藏其托盘图标（程序继续运行）
    - **恢复显示** —— 让图标重新出现
    - **刷新** —— 重新扫描托盘图标
 3. 点击窗口右上角关闭按钮，窗口隐藏、程序转入后台（任务栏和托盘中都看不到）
-4. 想再次打开窗口：双击 `TrayHider.exe` 即可
+4. 想再次打开窗口：双击 `HIWi.exe` 即可
 
 ## 工作原理
 
@@ -41,7 +41,7 @@
 
 ```
 HiWi\
-├── dist\TrayHider.exe   # 打包好的可执行文件（单文件、无控制台）
+├── dist\HIWi.exe   # 打包好的可执行文件（单文件、无控制台）
 ├── tray_hider.py        # Python 源码
 ├── build.bat            # 一键重新打包脚本（自动安装 PyInstaller 并构建）
 └── README.md            # 本文档
@@ -50,8 +50,8 @@ HiWi\
 运行期数据（自动生成）：
 
 ```
-%APPDATA%\TrayHider\config.json   # 隐藏名单与自启设置
-%APPDATA%\TrayHider\error.log     # 错误日志（正常使用时不会生成）
+%APPDATA%\HIWi\config.json   # 隐藏名单与自启设置
+%APPDATA%\HIWi\error.log     # 错误日志（正常使用时不会生成）
 ```
 
 ## 自行打包
@@ -66,14 +66,14 @@ build.bat
 
 ```bat
 python -m pip install --upgrade pyinstaller
-python -m PyInstaller --noconsole --onefile --name TrayHider tray_hider.py
+python -m PyInstaller --noconsole --onefile --name HIWi tray_hider.py
 ```
 
-产物位于 `dist\TrayHider.exe`。
+产物位于 `dist\HIWi.exe`。
 
 ## 已知限制
 
 - 极少数以 **GUID 方式**注册托盘图标的程序无法被探测到（不会出现在列表中）
-- 对**以管理员身份运行**的程序，可能因权限不足读不到其进程路径；可将 `TrayHider.exe` 也设为"以管理员身份运行"
+- 对**以管理员身份运行**的程序，可能因权限不足读不到其进程路径；可将 `HIWi.exe` 也设为"以管理员身份运行"
 - 使用新版引擎（Win11）时，「恢复显示」依赖目标程序响应 `TaskbarCreated` 广播重新注册图标，主流程序（微信、QQ、OneDrive 等）均支持；个别不响应的程序需等其下次自行刷新图标
 - 打包类 exe 可能被个别杀毒软件误报，属 PyInstaller 单文件程序的常见现象

@@ -2,9 +2,9 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 python -m pip install --upgrade pyinstaller || goto :err
-python -m PyInstaller --noconsole --onefile --name TrayHider tray_hider.py || goto :err
+python -m PyInstaller --noconsole --onefile --name HIWi tray_hider.py || goto :err
 echo.
-echo 打包完成: %cd%\dist\TrayHider.exe
+echo 打包完成: %cd%\dist\HIWi.exe
 pause
 exit /b 0
 :err
